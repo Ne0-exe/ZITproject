@@ -1,20 +1,12 @@
-import ipList from analyse as ipL
+import analyse
+import sys
 
-if __name__ == "__main__":
+ipL = analyse.ipList
+sortDict = {ipL[0]:1}
+sortDict = {i:ipL.count(i) for i in ipL}
 
-    sortDict = {}
-    def sortAlg(ipL):
-        for i in range(len(ipL)):
-            if len(sortDict) == 0:
-                continue
-            for a, b in sortDict.items():
-                if ipL[i] == a:
-                    b = b + 1
-                else:
-                    sortDict[ipL[i]] = 1
-
-        print(sortDict)
-
+with open('ips.txt', 'w') as sys.stdout:
+    print(sortDict)
 
 
 
