@@ -1,39 +1,45 @@
 import sqlite3
-from sqlite3 import Error
-import sort
+import analyse
+import sys
 
-def create_connection(db_file):
-    conn = None
-    try:
-        conn = sqlite3.connect(db_file)
-    except Error as e:
-        print(e)
+ipL = analyse.ipList
+sortDict = {ipL[0]:1}
+sortDict = {i:ipL.count(i) for i in ipL}
 
-    return conn
-
-def create_project(conn, project, sD):
-
-    sql = ''' INSERT INTO projects(IPs, Counts, Rank) VALUES(?,?,?) '''
-    cur = conn.cursor()
-    cur.execute(sql, project)
-    conn.commit()
-    return cur.lastrowid
-
-
-def main():
-    sD = sort.sortDict
-    database = r"ipdatabase.db"
+with open('ips.txt', 'w') as sys.stdout:
+    sD = sortDict
+    database = r'C:\Users\macie\OneDrive\Pulpit\ProjektZIT\ipdatabase.db'
     # create a database connection
-    conn = create_connection(database)
-    with conn:
-        ranksDict = [5, 15, 100000000000000000000]
-        for x, y in sD.items():
-            if y < ranksDict[0]:
-                project = (x, y, 'safe');
-            if y < ranksDict[1]:
-                project = (x, y, 'concerning');
-            else:
-                project = (x, y, 'dangerous');
+    conn = sqlite3.connect(database)
+    cursor = conn.cursor()
 
-if __name__ == '__main__':
-    main()
+    command1 = """CREATE TABLE IF NOT EXISTS ip_db (
+               IPs TEXT,
+               Counts INTEGER,
+               Rank TEXT)"""
+
+    cursor.execute(command1)
+
+    ranksL = [5, 30]
+
+    for x, y in sD.items():
+        if y < ranksL[0]:
+            cursor.execute("INSERT INTO ip_db (IPs, Counts , Rank) VALUES(?, ?, ?)", (x, y, 'safe'))
+            conn.commit()
+            continue
+        if y < ranksL[1]:
+            cursor.execute("INSERT INTO ip_db (IPs, Counts , Rank) VALUES(?, ?, ?)", (x, y, 'concerning'))
+            conn.commit()
+            continue
+        else:
+            cursor.execute("INSERT INTO ip_db (IPs, Counts , Rank) VALUES(?, ?, ?)", (x, y, 'dangerous'))
+            conn.commit()
+
+    sql = "SELECT * FROM ip_db ORDER BY Counts ASC"
+    cursor.execute(sql)
+    rows = cursor.fetchall()
+    for row in rows:
+        print(row)
+
+    conn.close()
+
